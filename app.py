@@ -3,7 +3,10 @@ import os
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings, HuggingFaceInstructEmbeddings
+# ------------------------------------------------------------------
+# We now import HuggingFaceEmbeddings to use the open-source model.
+from langchain.embeddings import HuggingFaceEmbeddings, OpenAIEmbeddings, HuggingFaceInstructEmbeddings
+# ------------------------------------------------------------------
 from langchain.vectorstores import FAISS
 from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
@@ -33,8 +36,20 @@ def get_text_chunks(text):
 
 # Embeds text, Stores vectors using langchain
 def get_vectorstore(text_chunks):
-    embeddings = OpenAIEmbeddings()
-    # embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl")
+    # ------------------------------------------------------------------
+    # The original OpenAI embeddings are replaced with a high-quality,
+    # open-source embedding model fine-tuned with a ranking objective
+    # (similar to CoSENT).
+    model_name = "all-mpnet-base-v2"
+    model_kwargs = {'device': 'cpu'} # Use 'cuda' if you have a GPU
+    encode_kwargs = {'normalize_embeddings': True}
+    
+    embeddings = HuggingFaceEmbeddings(
+        model_name=model_name,
+        model_kwargs=model_kwargs,
+        encode_kwargs=encode_kwargs
+    )
+    # ------------------------------------------------------------------
     vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
     return vectorstore
 
