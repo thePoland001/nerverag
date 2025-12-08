@@ -1,5 +1,3 @@
-# thepoland001/nerverag/nerverag-8c87e791ef667210ce5efb56a9b3514f670fea14/app.py
-
 import streamlit as st
 import os 
 from dotenv import load_dotenv
@@ -24,7 +22,6 @@ def get_pdf_text(pdf_docs):
 
 # Splits the block of raw text into smaller pieces 
 def get_text_chunks(text):
-    # Use RecursiveCharacterTextSplitter to respect sentence boundaries
     text_splitter = RecursiveCharacterTextSplitter(
         separators=["\n\n", "\n", " ", ""],
         chunk_size=1000,
@@ -36,11 +33,7 @@ def get_text_chunks(text):
 
 # Embeds text, Stores vectors using langchain
 def get_vectorstore(text_chunks):
-    # -------------------------------------------------------------
-    # DIRECT COSENT IMPLEMENTATION
-    # We use 'shibing624/text2vec-base-multilingual', which is explicitly
-    # trained using the CoSENT (Consistent Sentence Embedding) Loss.
-    # -------------------------------------------------------------
+    # Uses the specific CoSENT model 'shibing624/text2vec-base-multilingual'
     model_name = "shibing624/text2vec-base-multilingual"
     model_kwargs = {'device': 'cpu'} 
     encode_kwargs = {'normalize_embeddings': True}
@@ -58,12 +51,16 @@ def get_vectorstore(text_chunks):
 def get_conversation_chain(vectorstore):
     llm = ChatOpenAI()
     
-    # System prompt to force the LLM to use the retrieved CoSENT context
     system_template = (
         "You are an expert RAG assistant. Answer the user's question "
-        "only based on the provided context. If the answer is not in the context, "
-        "politely state that the information is not available."
+        "only based on the provided context below.\n"
+        "If the answer is not in the context, politely state that the "
+        "information is not available.\n\n"
+        "Context:\n"
+        "{context}" 
     )
+    # -------------------
+
     messages = [
         SystemMessagePromptTemplate.from_template(system_template),
         HumanMessagePromptTemplate.from_template("{question}"),
