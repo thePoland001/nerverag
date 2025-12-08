@@ -11,7 +11,6 @@ from langchain.chains import ConversationalRetrievalChain
 from htmlTemplates import css, bot_template, user_template
 from langchain.prompts import SystemMessagePromptTemplate, ChatPromptTemplate, HumanMessagePromptTemplate
 
-# Extracts raw text from the uploaded PDF files 
 def get_pdf_text(pdf_docs):
     text = ""
     for pdf in pdf_docs:
@@ -20,7 +19,6 @@ def get_pdf_text(pdf_docs):
             text += page.extract_text()
     return text
 
-# Splits the block of raw text into smaller pieces 
 def get_text_chunks(text):
     text_splitter = RecursiveCharacterTextSplitter(
         separators=["\n\n", "\n", " ", ""],
@@ -31,9 +29,7 @@ def get_text_chunks(text):
     chunks = text_splitter.split_text(text)
     return chunks
 
-# Embeds text, Stores vectors using langchain
 def get_vectorstore(text_chunks):
-    # Uses the specific CoSENT model 'shibing624/text2vec-base-multilingual'
     model_name = "shibing624/text2vec-base-multilingual"
     model_kwargs = {'device': 'cpu'} 
     encode_kwargs = {'normalize_embeddings': True}
@@ -47,19 +43,27 @@ def get_vectorstore(text_chunks):
     vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
     return vectorstore
 
-# Initializes LLM, allows ai to remember prev. q&a
 def get_conversation_chain(vectorstore):
-    llm = ChatOpenAI()
+    # We use a temperature of 0.3 to allow slight creativity in synthesis
+    # while keeping it grounded in facts.
+    llm = ChatOpenAI(temperature=0.3)
     
-    system_template = (
-        "You are an expert RAG assistant. Answer the user's question "
-        "only based on the provided context below.\n"
-        "If the answer is not in the context, politely state that the "
-        "information is not available.\n\n"
-        "Context:\n"
-        "{context}" 
-    )
-    # -------------------
+    # --- SUPERIOR SYSTEM PROMPT ---
+    # This prompt instructs the AI to infer meaning rather than just matching keywords.
+    system_template = """You are a Senior Research Analyst. Your goal is to extract deep insights and answer questions about the provided research paper.
+
+    CRITICAL INSTRUCTIONS:
+    1. **Infer, Don't Just Quote:** If the user asks for "research questions" and the paper doesn't explicitly list them, you must INFER them from the "Introduction," "Problem Statement," or "We focus on..." sections.
+    2. **Synthesize:** Combine information from multiple parts of the context to form a complete answer.
+    3. **Structure:** Use bolding, bullet points, and clear headings (Markdown) to make the answer readable.
+    4. **Tone:** Be analytical, direct, and professional (like the user's "regular ChatGPT" example).
+
+    If the exact answer is missing, infer the most likely answer based on the context provided. Only say "I don't know" if the context is completely irrelevant.
+
+    Context:
+    {context}
+    """
+    # ------------------------------
 
     messages = [
         SystemMessagePromptTemplate.from_template(system_template),
@@ -78,7 +82,6 @@ def get_conversation_chain(vectorstore):
     )
     return conversation_chain
 
-# Manages front end when user types question 
 def handle_userinput(user_question):
     if st.session_state.conversation:
         response = st.session_state.conversation({'question': user_question})
