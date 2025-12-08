@@ -1,3 +1,4 @@
+# thepoland001/nerverag/nerverag-8c87e791ef667210ce5efb56a9b3514f670fea14/requirements.txt
 langchain==0.0.184
 PyPDF2==3.0.1
 python-dotenv==1.0.0
@@ -6,9 +7,5 @@ openai==0.27.6
 faiss-cpu
 altair==4
 tiktoken==0.4.0
-# uncomment to use huggingface llms
+sentence-transformers
 # huggingface-hub==0.14.1
-sentence-transformers # Added for HuggingFaceEmbeddings dependency
-# uncomment to use instructor embeddings
-# InstructorEmbedding==1.0.1
-# sentence-transformers==2.2.2
