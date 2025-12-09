@@ -56,7 +56,7 @@ def get_conversation_chain(vectorstore):
     1. **Infer, Don't Just Quote:** If the user asks for "research questions" and the paper doesn't explicitly list them, you must INFER them from the "Introduction," "Problem Statement," or "We focus on..." sections.
     2. **Synthesize:** Combine information from multiple parts of the context to form a complete answer.
     3. **Structure:** Use bolding, bullet points, and clear headings (Markdown) to make the answer readable.
-    4. **Tone:** Be analytical, direct, and professional (like the user's "regular ChatGPT" example).
+    4. **Tone:** Be analytical, direct, and professional.
 
     If the exact answer is missing, infer the most likely answer based on the context provided. Only say "I don't know" if the context is completely irrelevant.
 
