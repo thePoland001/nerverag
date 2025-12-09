@@ -48,8 +48,6 @@ def get_conversation_chain(vectorstore):
     # while keeping it grounded in facts.
     llm = ChatOpenAI(temperature=0.3)
     
-    # --- SUPERIOR SYSTEM PROMPT ---
-    # This prompt instructs the AI to infer meaning rather than just matching keywords.
     system_template = """You are a Senior Research Analyst. Your goal is to extract deep insights and answer questions about the provided research paper.
 
     CRITICAL INSTRUCTIONS:
